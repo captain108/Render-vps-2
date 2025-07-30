@@ -2,32 +2,31 @@ FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
     openssh-server \
-    curl \
-    unzip \
-    wget \
-    sudo \
-    git \
-    python3 \
-    python3-pip
+    curl unzip wget sudo \
+    && apt-get clean
 
-# Create user for SSH login
-RUN useradd -m user && echo 'user:user' | chpasswd && adduser user sudo
-
-# Set up SSH
-RUN mkdir /var/run/sshd
+# Add SSH user
+RUN useradd -m user && echo "user:user" | chpasswd && adduser user sudo
 
 # Install ngrok
-RUN wget -q -O ngrok.zip https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-linux-amd64.zip && \
+RUN mkdir -p /root/.config/ngrok
+COPY root/.config/ngrok/ngrok.yml /root/.config/ngrok/ngrok.yml
+RUN wget -qO ngrok.zip https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip && \
     unzip ngrok.zip && mv ngrok /usr/local/bin && rm ngrok.zip
 
-# Add entrypoint
-COPY entrypoint.sh /entrypoint.sh
-COPY ngrok.yml /root/.config/ngrok/ngrok.yml
+# Enable SSH
+RUN mkdir /var/run/sshd
+RUN echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
 
+# Copy setup scripts
+COPY root/setup.sh /setup.sh
+RUN chmod +x /setup.sh
+
+# Entry point
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 22
-
 CMD ["/entrypoint.sh"]
