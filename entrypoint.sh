@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Start SSH
+# Start SSH service
 service ssh start
 
-# Start ngrok
-ngrok tcp 22 &
+# Run setup (background ngrok)
+bash /setup.sh
 
-# Keep container alive
+# Tail logs forever
 tail -f /dev/null
