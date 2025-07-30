@@ -1,10 +1,9 @@
 #!/bin/bash
+# Start SSH normally
+/etc/init.d/ssh start
 
-# Start SSH service
-service ssh start
+# Dummy listener to keep a port open (e.g., port 8080)
+socat TCP-LISTEN:8080,fork EXEC:/bin/cat &
 
-# Run setup (background ngrok)
-bash /setup.sh
-
-# Tail logs forever
+# Keep container running
 tail -f /dev/null
