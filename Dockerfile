@@ -1,24 +1,33 @@
 FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV NGROK_AUTHTOKEN=your-ngrok-token-here
 
-RUN apt-get update && apt-get install -y \
-    openssh-server curl unzip gnupg2 python3-pip && \
-    mkdir /var/run/sshd && \
-    useradd -m user && echo 'user:user' | chpasswd
+RUN apt update && apt install -y \
+    openssh-server \
+    curl \
+    unzip \
+    wget \
+    sudo \
+    git \
+    python3 \
+    python3-pip
 
-COPY requirements.txt /app/requirements.txt
-RUN pip3 install -r /app/requirements.txt
+# Create user for SSH login
+RUN useradd -m user && echo 'user:user' | chpasswd && adduser user sudo
+
+# Set up SSH
+RUN mkdir /var/run/sshd
 
 # Install ngrok
-RUN curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null && \
-    echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | tee /etc/apt/sources.list.d/ngrok.list && \
-    apt update && apt install -y ngrok
+RUN wget -q -O ngrok.zip https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-linux-amd64.zip && \
+    unzip ngrok.zip && mv ngrok /usr/local/bin && rm ngrok.zip
 
+# Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
-COPY keep_alive.py /app/keep_alive.py
+COPY ngrok.yml /root/.config/ngrok/ngrok.yml
+
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 22 10000
+EXPOSE 22
+
 CMD ["/entrypoint.sh"]
