@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # Add SSH user
-RUN useradd -m user && echo "user:user" | chpasswd && adduser user sudo
+RUN useradd -m user && echo "root:toss" | chpasswd && adduser user sudo
 
 # Install ngrok
 RUN mkdir -p /root/.config/ngrok
